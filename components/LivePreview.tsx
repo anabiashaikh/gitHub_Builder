@@ -116,18 +116,18 @@ ${techStack.map((tech) => `\`${tech}\``).join(" • ")}
   return (
     <div className="w-full h-full bg-surface-container-lowest overflow-y-auto relative flex flex-col">
       {/* Preview Sticky Header Controls */}
-      <div className="sticky top-0 bg-surface-container-lowest/95 backdrop-blur-md border-b border-outline-variant px-6 py-3 flex justify-between items-center z-20 shrink-0 select-none">
-        <div className="flex items-center gap-3">
-          <Eye size={18} className="text-primary" />
-          <h2 className="font-mono text-xs uppercase tracking-wider text-on-surface font-semibold">
+      <div className="sticky top-0 bg-surface-container-lowest/95 backdrop-blur-md border-b border-outline-variant px-3 sm:px-6 py-2.5 flex flex-wrap justify-between items-center z-20 shrink-0 select-none gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Eye size={16} className="text-primary shrink-0" />
+          <h2 className="font-mono text-[11px] sm:text-xs uppercase tracking-wider text-on-surface font-semibold whitespace-nowrap">
             Live Sync Preview
           </h2>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/30">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/30 hidden sm:inline-block">
             Theme: {templateId}
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* Preview Format Switcher */}
           <div className="flex items-center bg-surface-container-high rounded-md p-0.5 border border-outline-variant text-xs font-mono">
             <button

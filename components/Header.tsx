@@ -26,17 +26,17 @@ export function Header() {
   return (
     <header className="bg-surface font-sans text-sm border-b border-outline-variant flex justify-between items-center w-full px-6 h-16 sticky top-0 z-50 shrink-0 select-none">
       {/* Left Title & Tabs */}
-      <div className="flex items-center gap-6 h-full">
-        <span className="font-sans font-bold text-lg text-primary md:hidden block">
-          DevProfile Builder
+      <div className="flex items-center gap-3 sm:gap-6 h-full">
+        <span className="font-sans font-bold text-sm sm:text-lg text-primary md:hidden block shrink-0">
+          DevProfile
         </span>
 
-        <nav className="hidden md:flex h-full items-end gap-1">
+        <nav className="flex h-full items-end gap-1 overflow-x-auto">
           <button
             onClick={() => setProfileField("activeTab", "editor")}
-            className={`px-4 h-full flex items-center font-mono text-xs uppercase tracking-wider transition-all border-b-2 ${
+            className={`px-2.5 sm:px-4 h-full flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
               activeTab === "editor"
-                ? "text-primary border-primary font-semibold"
+                ? "text-primary border-primary font-semibold bg-surface-container-low/50"
                 : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-high"
             }`}
           >
@@ -44,9 +44,9 @@ export function Header() {
           </button>
           <button
             onClick={() => setProfileField("activeTab", "preview")}
-            className={`px-4 h-full flex items-center font-mono text-xs uppercase tracking-wider transition-all border-b-2 ${
+            className={`px-2.5 sm:px-4 h-full flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
               activeTab === "preview"
-                ? "text-primary border-primary font-semibold"
+                ? "text-primary border-primary font-semibold bg-surface-container-low/50"
                 : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-high"
             }`}
           >
@@ -54,9 +54,9 @@ export function Header() {
           </button>
           <button
             onClick={() => setProfileField("activeTab", "templates")}
-            className={`px-4 h-full flex items-center font-mono text-xs uppercase tracking-wider transition-all border-b-2 ${
+            className={`px-2.5 sm:px-4 h-full flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
               activeTab === "templates"
-                ? "text-primary border-primary font-semibold"
+                ? "text-primary border-primary font-semibold bg-surface-container-low/50"
                 : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-high"
             }`}
           >
