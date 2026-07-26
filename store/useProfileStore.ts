@@ -44,14 +44,14 @@ export interface ProfileState {
 }
 
 const defaultState = {
-  name: "Alex Chen",
-  title: "Senior Full Stack Engineer",
-  bio: "Building scalable systems and pixel-perfect UIs.\n\nPassionate about open source, design systems, and improving developer experience. Currently working on infrastructure scaling at Acme Corp.",
-  location: "San Francisco, CA",
-  portfolioUrl: "https://myportfolio.dev",
-  githubUsername: "alexchen-dev",
-  techStack: ["TypeScript", "React", "Node.js", "Docker", "PostgreSQL"],
-  avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+  name: "",
+  title: "",
+  bio: "",
+  location: "",
+  portfolioUrl: "",
+  githubUsername: "",
+  techStack: [],
+  avatarUrl: "",
   templateId: "gradient-indigo",
   activeTab: "editor" as const,
   activeNavSection: "identity" as const,

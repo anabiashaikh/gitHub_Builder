@@ -34,16 +34,22 @@ export function LivePreview() {
     );
   }
 
-  // Safe fallback values if state fields are empty
-  const name = state.name || "Alex Chen";
-  const title = state.title || "Senior Full Stack Engineer";
-  const bio = state.bio || "Building scalable web applications and intuitive user interfaces.";
-  const location = state.location || "San Francisco, CA";
-  const portfolioUrl = state.portfolioUrl || "https://myportfolio.dev";
-  const githubUsername = state.githubUsername || "alexchen-dev";
-  const techStack = state.techStack && state.techStack.length > 0
-    ? state.techStack
-    : ["TypeScript", "React", "Node.js", "TailwindCSS"];
+  const hasData = Boolean(
+    state.name.trim() ||
+    state.title.trim() ||
+    state.bio.trim() ||
+    state.githubUsername.trim() ||
+    state.techStack.length > 0 ||
+    state.avatarUrl.trim()
+  );
+
+  const name = state.name || "Your Name";
+  const title = state.title || "Your Title";
+  const bio = state.bio || "Your developer biography will appear here as you type or generate with AI...";
+  const location = state.location;
+  const portfolioUrl = state.portfolioUrl;
+  const githubUsername = state.githubUsername;
+  const techStack = state.techStack;
   const avatarUrl = state.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80";
   const templateId = state.templateId || "gradient-indigo";
 
@@ -182,7 +188,22 @@ ${techStack.map((tech) => `\`${tech}\``).join(" • ")}
 
       {/* Preview Canvas Content */}
       <div className="p-6 md:p-10 flex justify-center flex-grow items-start">
-        {previewTab === "card" ? (
+        {!hasData ? (
+          <div className="w-full max-w-md bg-surface-container-low border border-dashed border-outline-variant rounded-xl p-8 text-center flex flex-col items-center justify-center my-auto shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary mb-4">
+              <Eye size={28} />
+            </div>
+            <h3 className="font-sans font-bold text-base text-on-surface mb-2">
+              Live Preview Window
+            </h3>
+            <p className="font-sans text-xs text-on-surface-variant leading-relaxed max-w-xs mb-4">
+              Start typing in the Editor or click <strong className="text-primary font-mono">Build with AI</strong> to watch your profile render here in real-time.
+            </p>
+            <span className="font-mono text-[11px] px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant border border-outline-variant">
+              Waiting for user input...
+            </span>
+          </div>
+        ) : previewTab === "card" ? (
           <div
             className={`w-full transition-all duration-300 ${
               viewMode === "mobile" ? "max-w-md" : "max-w-3xl"
