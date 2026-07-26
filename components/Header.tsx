@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useProfileStore } from "@/store/useProfileStore";
-import { Bell, Settings, Check, Sparkles } from "lucide-react";
+import { Bell, Settings, Check, Sparkles, User } from "lucide-react";
 import confetti from "canvas-confetti";
 
 export function Header() {
@@ -104,12 +104,16 @@ export function Header() {
         </button>
 
         {/* User Avatar */}
-        <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high cursor-pointer shrink-0">
-          <img
-            alt="User avatar"
-            className="w-full h-full object-cover"
-            src={state.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"}
-          />
+        <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high cursor-pointer shrink-0 flex items-center justify-center">
+          {state.avatarUrl ? (
+            <img
+              alt="User avatar"
+              className="w-full h-full object-cover"
+              src={state.avatarUrl}
+            />
+          ) : (
+            <User size={16} className="text-on-surface-variant" />
+          )}
         </div>
       </div>
     </header>

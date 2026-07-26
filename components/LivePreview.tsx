@@ -13,6 +13,7 @@ import {
   Copy,
   Check,
   Download,
+  User,
 } from "lucide-react";
 
 export function LivePreview() {
@@ -50,7 +51,7 @@ export function LivePreview() {
   const portfolioUrl = state.portfolioUrl;
   const githubUsername = state.githubUsername;
   const techStack = state.techStack;
-  const avatarUrl = state.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80";
+  const avatarUrl = state.avatarUrl;
   const templateId = state.templateId || "gradient-indigo";
 
   // Dynamic template styling mapping
@@ -88,14 +89,11 @@ ${bio}
 ---
 
 ### 🌐 Connect & Details
-- 📍 **Location:** ${location}
-- 🔗 **Portfolio:** [${portfolioUrl}](${portfolioUrl})
-- 🐙 **GitHub:** [@${githubUsername}](https://github.com/${githubUsername})
-
+${location ? `- 📍 **Location:** ${location}\n` : ""}${portfolioUrl ? `- 🔗 **Portfolio:** [${portfolioUrl}](${portfolioUrl})\n` : ""}${githubUsername ? `- 🐙 **GitHub:** [@${githubUsername}](https://github.com/${githubUsername})\n` : ""}
 ---
 
 ### ⚡ Top Tech Stack
-${techStack.map((tech) => `\`${tech}\``).join(" • ")}
+${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : "`Developer`"}
 
 ---
 *Generated with DevProfile Architect* 🚀
@@ -215,12 +213,16 @@ ${techStack.map((tech) => `\`${tech}\``).join(" • ")}
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
 
               <div className="flex items-end gap-4 relative z-10 translate-y-10">
-                <div className="w-24 h-24 rounded-full border-4 border-[#0d1117] bg-[#161b22] overflow-hidden shrink-0 shadow-lg">
-                  <img
-                    alt="Preview Avatar"
-                    className="w-full h-full object-cover"
-                    src={avatarUrl}
-                  />
+                <div className="w-24 h-24 rounded-full border-4 border-[#0d1117] bg-[#161b22] overflow-hidden shrink-0 shadow-lg flex items-center justify-center">
+                  {avatarUrl ? (
+                    <img
+                      alt="Preview Avatar"
+                      className="w-full h-full object-cover"
+                      src={avatarUrl}
+                    />
+                  ) : (
+                    <User size={36} className="text-[#8b949e]" />
+                  )}
                 </div>
               </div>
             </div>
