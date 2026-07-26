@@ -66,7 +66,7 @@ export function AIAssistantBox() {
       <div className="flex items-center justify-between mb-2 relative z-10">
         <h3 className="font-mono text-xs uppercase tracking-wider text-primary font-bold flex items-center gap-2">
           <Bot size={16} className="text-primary" />
-          <span>Build with AI (Gemini 2.5 Flash)</span>
+          <span>Build with AI</span>
         </h3>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
           Fast Structured Sync
