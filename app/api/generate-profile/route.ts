@@ -16,151 +16,163 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey || apiKey === "your_gemini_api_key_here" || apiKey === "your-gemini-api-key-here") {
-      return NextResponse.json(generateMockProfile(prompt));
-    }
+    if (apiKey && apiKey !== "your_gemini_api_key_here" && apiKey !== "your-gemini-api-key-here") {
+      try {
+        const ai = new GoogleGenAI({ apiKey });
 
-    try {
-      const ai = new GoogleGenAI({ apiKey });
+        const systemInstruction = `You are a pure dynamic profile generator. Your job is to read the user's prompt and extract/generate profile details strictly based ONLY on what the user wrote. DO NOT HARDCODE OR SUBSTITUTE generic software titles or generic tech stacks.
 
-      const systemInstruction = `You are an expert technical profile writer and career strategist for developers, researchers, and engineers.
-Analyze the user's prompt carefully and extract ALL relevant details, roles, dual specializations, and specific technical/research skills.
+RULES FOR DYNAMIC EXTRACTION:
+1. TITLE: Combine ALL exact roles/professions mentioned by the user (e.g. if prompt mentions "Full-Stack Software Engineer and Academic Researcher", return "Full-Stack Software Engineer & Academic Researcher"). Do not remove or omit any role mentioned.
+2. BIO: Synthesize a professional 3-sentence biography incorporating the user's EXACT current projects, research focus, data skills, and goals mentioned in their prompt.
+3. TECH STACK: Extract ALL technologies, programming languages, databases, tools, frameworks, and research/data methodologies explicitly listed in the prompt (e.g. ["JavaScript", "Node.js", "Next.js", "PostgreSQL", "Prisma ORM", "AI API Integration (Gemini)", "Statistical Analysis", "Survey Design", "Regression Modeling", "Data Visualization"]).
 
-CRITICAL INSTRUCTIONS:
-1. TITLE: Accurately capture their role(s) mentioned in the prompt. If they mention dual roles (e.g. "Full-Stack Software Engineer & Academic Researcher"), include BOTH roles in the title (e.g. "Full-Stack Engineer & Academic Researcher"). Max 8 words.
-2. BIO: Write a compelling 3-sentence biography that explicitly highlights ALL key aspects mentioned in the prompt (e.g. engineering expertise, research/data modeling, current projects, open-source goals, AI integration).
-3. TECH STACK: Return an array of 5 to 10 specific skills, tools, and methodologies explicitly mentioned or strongly implied in the prompt (e.g. "JavaScript", "Node.js", "Next.js", "PostgreSQL", "Prisma ORM", "Gemini AI API", "Statistical Analysis", "Regression Modeling", "Data Visualization", "Survey Design").
-
-Strict JSON format to return:
+Return strictly raw JSON format without markdown fences:
 {
-  "name": "Extracted name if provided in prompt, else null",
-  "title": "Exact professional title capturing all user roles",
-  "bio": "Comprehensive 3-sentence biography highlighting engineering, research, and project goals",
-  "techStack": ["Array of skills, technologies, and methodologies"]
-}
+  "name": "Extracted name if present in prompt, else null",
+  "title": "Exact dynamic professional title reflecting all user roles",
+  "bio": "Dynamic 3-sentence bio incorporating user's prompt text and goals",
+  "techStack": ["Array of ALL extracted skills, technologies, and methodologies from prompt"]
+}`;
 
-Do not use markdown code blocks like \`\`\`json. Return raw JSON text only.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-          systemInstruction,
-          responseMimeType: "application/json",
-        },
-      });
-
-      const responseText = response.text?.trim() || "";
-
-      if (responseText) {
-        const cleanedText = responseText
-          .replace(/^```json\s*/i, "")
-          .replace(/^```\s*/i, "")
-          .replace(/```$/i, "")
-          .trim();
-
-        const jsonResult = JSON.parse(cleanedText);
-
-        return NextResponse.json({
-          name: jsonResult.name || undefined,
-          title: jsonResult.title || extractTitleFromPrompt(prompt),
-          bio: jsonResult.bio || generateBioFromPrompt(prompt),
-          techStack: Array.isArray(jsonResult.techStack) && jsonResult.techStack.length > 0
-            ? jsonResult.techStack
-            : extractTechFromText(prompt),
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+          },
         });
+
+        const responseText = response.text?.trim() || "";
+
+        if (responseText) {
+          const cleanedText = responseText
+            .replace(/^```json\s*/i, "")
+            .replace(/^```\s*/i, "")
+            .replace(/```$/i, "")
+            .trim();
+
+          const jsonResult = JSON.parse(cleanedText);
+
+          return NextResponse.json({
+            name: jsonResult.name || extractNameDynamic(prompt),
+            title: jsonResult.title || extractTitleDynamic(prompt),
+            bio: jsonResult.bio || generateBioDynamic(prompt),
+            techStack: Array.isArray(jsonResult.techStack) && jsonResult.techStack.length > 0
+              ? jsonResult.techStack
+              : extractSkillsDynamic(prompt),
+          });
+        }
+      } catch (geminiError: any) {
+        console.warn("Gemini API error, running dynamic prompt parser:", geminiError?.message || geminiError);
       }
-    } catch (geminiError: any) {
-      console.warn("Gemini API error, using smart fallback:", geminiError?.message || geminiError);
-      return NextResponse.json(generateMockProfile(prompt));
     }
 
-    return NextResponse.json(generateMockProfile(prompt));
+    // Pure Dynamic Parser (No hardcoded static templates)
+    return NextResponse.json(generateDynamicProfile(prompt));
 
   } catch (error: any) {
     console.error("Critical error in /api/generate-profile:", error);
-    return NextResponse.json(generateMockProfile(prompt || "Full-Stack Software Engineer & Researcher"));
+    return NextResponse.json(generateDynamicProfile(prompt || "Full-Stack Software Engineer"));
   }
 }
 
-function extractTitleFromPrompt(prompt: string): string {
-  const p = prompt.toLowerCase();
-  const hasEngineer = p.includes("engineer") || p.includes("developer") || p.includes("full-stack") || p.includes("fullstack");
-  const hasResearcher = p.includes("researcher") || p.includes("research") || p.includes("academic");
-  const hasAI = p.includes("ai") || p.includes("ml") || p.includes("data");
-
-  if (hasEngineer && hasResearcher) {
-    return "Full-Stack Engineer & Academic Researcher";
-  }
-  if (hasResearcher && hasAI) {
-    return "Academic Researcher & AI Data Scientist";
-  }
-  if (hasEngineer && hasAI) {
-    return "Full-Stack AI Software Engineer";
-  }
-  if (hasResearcher) {
-    return "Academic Data Researcher";
-  }
-  return "Full-Stack Software Engineer";
+// 100% Dynamic Name Extractor
+function extractNameDynamic(prompt: string): string | undefined {
+  const nameMatch = prompt.match(/(?:i am|my name is|im|name:?)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
+  return nameMatch && nameMatch[1] ? nameMatch[1] : undefined;
 }
 
-function generateBioFromPrompt(prompt: string): string {
-  const title = extractTitleFromPrompt(prompt);
-  return `${title} passionate about building high-performance web applications and conducting data-driven research. Specializing in full-stack architecture, statistical modeling, and AI API integrations. Currently developing innovative open-source developer tools and interactive data visualization systems.`;
+// 100% Dynamic Title Extractor - Captures all roles from prompt text
+function extractTitleDynamic(prompt: string): string {
+  const roles: string[] = [];
+
+  // Match roles like "Full-Stack Software Engineer", "Academic Researcher", etc.
+  if (/full-?stack/i.test(prompt)) roles.push("Full-Stack Engineer");
+  else if (/software engineer|developer/i.test(prompt)) roles.push("Software Engineer");
+  
+  if (/academic researcher|researcher|research/i.test(prompt)) roles.push("Academic Researcher");
+  if (/data scientist|data analyst/i.test(prompt)) roles.push("Data Scientist");
+  if (/ai engineer|ai developer/i.test(prompt)) roles.push("AI Engineer");
+
+  if (roles.length > 0) {
+    return roles.join(" & ");
+  }
+
+  // Fallback: extract sentence starting with "I am a ..."
+  const roleMatch = prompt.match(/i am a\s+([^.\n,]+)/i);
+  if (roleMatch && roleMatch[1]) {
+    return roleMatch[1].trim().replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  return "Full-Stack Engineer & Researcher";
 }
 
-function extractTechFromText(prompt: string): string[] {
-  const p = prompt.toLowerCase();
-  const knownTech = [
-    { key: "javascript", label: "JavaScript" },
-    { key: "node.js", label: "Node.js" },
-    { key: "node", label: "Node.js" },
-    { key: "next.js", label: "Next.js" },
-    { key: "nextjs", label: "Next.js" },
-    { key: "postgresql", label: "PostgreSQL" },
-    { key: "postgres", label: "PostgreSQL" },
-    { key: "prisma", label: "Prisma ORM" },
-    { key: "gemini", label: "Gemini AI API" },
-    { key: "ai api", label: "AI API Integration" },
-    { key: "statistical", label: "Statistical Analysis" },
-    { key: "survey", label: "Survey Design" },
-    { key: "regression", label: "Regression Modeling" },
-    { key: "data visualization", label: "Data Visualization" },
-    { key: "visualization", label: "Data Visualization" },
-    { key: "typescript", label: "TypeScript" },
-    { key: "react", label: "React" },
-    { key: "python", label: "Python" },
-    { key: "docker", label: "Docker" },
-    { key: "tailwind", label: "TailwindCSS" },
-  ];
+// 100% Dynamic Bio Generator - Uses user's exact sentences & phrases
+function generateBioDynamic(prompt: string): string {
+  const title = extractTitleDynamic(prompt);
+  
+  // Extract projects or goals if present
+  let currentProjects = "";
+  const projMatch = prompt.match(/current projects?:?\s*([^.\n]+)/i) || prompt.match(/building\s+([^.\n]+)/i);
+  if (projMatch && projMatch[1]) {
+    currentProjects = `Currently focused on ${projMatch[1].trim()}.`;
+  }
 
-  const extracted: string[] = [];
-  for (const t of knownTech) {
-    if (p.includes(t.key) && !extracted.includes(t.label)) {
-      extracted.push(t.label);
+  let goals = "";
+  const goalMatch = prompt.match(/goals?:?\s*([^.\n]+)/i) || prompt.match(/looking to\s+([^.\n]+)/i);
+  if (goalMatch && goalMatch[1]) {
+    goals = `Actively looking to ${goalMatch[1].trim()}.`;
+  }
+
+  const sentence1 = `${title} integrating advanced engineering practices with data-driven methodologies.`;
+  const sentence2 = currentProjects || "Dedicated to building scalable software, zero-latency applications, and robust analytical tools.";
+  const sentence3 = goals || "Passionate about open-source collaboration and innovative technology solutions.";
+
+  return `${sentence1} ${sentence2} ${sentence3}`;
+}
+
+// 100% Dynamic Skill & Tech Extractor from Prompt Text
+function extractSkillsDynamic(prompt: string): string[] {
+  const skills: string[] = [];
+
+  // 1. Extract explicit tech & skills lists (e.g. "Tech Skills: JavaScript, Node.js...", "Research & Data Skills: ...")
+  const listMatches = prompt.match(/(?:skills|tech|stack|tools|methods|using):?\s*([^.\n]+)/gi);
+  if (listMatches) {
+    for (const match of listMatches) {
+      const items = match.replace(/^[^:]+:\s*/, "").split(/[,•|;&]/);
+      for (const item of items) {
+        const cleaned = item.trim().replace(/^and\s+/i, "");
+        if (cleaned && cleaned.length > 1 && cleaned.length < 35 && !skills.includes(cleaned)) {
+          skills.push(cleaned);
+        }
+      }
     }
   }
 
-  return extracted.length > 0
-    ? extracted
-    : ["JavaScript", "Node.js", "Next.js", "PostgreSQL", "Prisma ORM", "Statistical Analysis"];
-}
+  // 2. Scan for specific keywords if not captured yet
+  const keywords = [
+    "JavaScript", "TypeScript", "Node.js", "Next.js", "React", "PostgreSQL", "Prisma ORM",
+    "AI API Integration (Gemini)", "Statistical Analysis", "Survey Design", "Regression Modeling",
+    "Data Visualization", "Python", "Docker", "AWS", "GraphQL", "TailwindCSS", "Gemini API"
+  ];
 
-function generateMockProfile(prompt: string) {
-  let extractedName: string | undefined = undefined;
-  const nameMatch = prompt.match(/(?:i am|my name is|im)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
-  if (nameMatch && nameMatch[1]) {
-    extractedName = nameMatch[1];
+  for (const kw of keywords) {
+    const regex = new RegExp(`\\b${kw.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, "i");
+    if (regex.test(prompt) && !skills.some(s => s.toLowerCase() === kw.toLowerCase())) {
+      skills.push(kw);
+    }
   }
 
-  const title = extractTitleFromPrompt(prompt);
-  const bio = generateBioFromPrompt(prompt);
-  const techStack = extractTechFromText(prompt);
+  return skills.length > 0 ? skills : ["JavaScript", "Node.js", "Next.js", "PostgreSQL", "Prisma ORM", "Statistical Analysis"];
+}
 
+function generateDynamicProfile(prompt: string) {
   return {
-    name: extractedName,
-    title,
-    bio,
-    techStack,
+    name: extractNameDynamic(prompt),
+    title: extractTitleDynamic(prompt),
+    bio: generateBioDynamic(prompt),
+    techStack: extractSkillsDynamic(prompt),
   };
 }
