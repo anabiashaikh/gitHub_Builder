@@ -23,18 +23,39 @@ export async function POST(req: NextRequest) {
     }
 
     const accessToken = session.accessToken;
-    const username = session.user?.username || session.user?.name;
+
+    // Step 1: Fetch exact authenticated user login handle directly from GitHub API
+    let username = session.user?.username;
+
+    try {
+      const userRes = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/vnd.github.v3+json",
+          "User-Agent": "DevProfile-Architect-App",
+        },
+      });
+
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        if (userData.login) {
+          username = userData.login;
+        }
+      }
+    } catch (userErr) {
+      console.warn("Failed to fetch user login from GitHub API:", userErr);
+    }
 
     if (!username) {
       return NextResponse.json(
-        { error: "Unable to retrieve GitHub username from session." },
+        { error: "Unable to retrieve valid GitHub username. Please sign in again." },
         { status: 400 }
       );
     }
 
     const repoUrl = `https://api.github.com/repos/${username}/${username}/contents/README.md`;
 
-    // Step A: Check if README.md file already exists to get its SHA hash
+    // Step 2: Check if README.md file already exists to get its SHA hash
     let sha: string | undefined = undefined;
 
     try {
@@ -51,13 +72,13 @@ export async function POST(req: NextRequest) {
         sha = fileData.sha;
       }
     } catch (checkErr) {
-      console.warn("README.md check error (file might not exist yet):", checkErr);
+      console.warn("README.md check error:", checkErr);
     }
 
-    // Step B: Create or Update README.md on GitHub
+    // Step 3: Put/Update README.md on GitHub
     const base64Content = Buffer.from(markdownContent).toString("base64");
 
-    const putBody: any = {
+    let putBody: any = {
       message: "Update README.md via DevProfile Architect",
       content: base64Content,
     };
@@ -66,7 +87,7 @@ export async function POST(req: NextRequest) {
       putBody.sha = sha;
     }
 
-    const updateRes = await fetch(repoUrl, {
+    let updateRes = await fetch(repoUrl, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -77,13 +98,63 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(putBody),
     });
 
-    const updateData = await updateRes.json();
+    let updateData = await updateRes.json();
+
+    // Step 4: Handle 404 (If repo username/username does not exist on GitHub yet)
+    if (updateRes.status === 404) {
+      console.log(`Repository ${username}/${username} not found. Attempting automatic creation...`);
+
+      try {
+        const createRepoRes = await fetch("https://api.github.com/user/repos", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/vnd.github.v3+json",
+            "Content-Type": "application/json",
+            "User-Agent": "DevProfile-Architect-App",
+          },
+          body: JSON.stringify({
+            name: username,
+            description: "Special repository for my GitHub Profile README",
+            auto_init: true,
+            private: false,
+          }),
+        });
+
+        if (createRepoRes.ok || createRepoRes.status === 422) {
+          // Wait 1.5 seconds for GitHub to initialize repo
+          await new Promise((r) => setTimeout(r, 1500));
+
+          // Retry PUT README.md
+          updateRes = await fetch(repoUrl, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              Accept: "application/vnd.github.v3+json",
+              "Content-Type": "application/json",
+              "User-Agent": "DevProfile-Architect-App",
+            },
+            body: JSON.stringify({
+              message: "Initial README.md via DevProfile Architect",
+              content: base64Content,
+            }),
+          });
+
+          updateData = await updateRes.json();
+        }
+      } catch (createErr) {
+        console.error("Auto repo creation error:", createErr);
+      }
+    }
 
     if (!updateRes.ok) {
       console.error("GitHub API error:", updateData);
       return NextResponse.json(
         {
-          error: updateData.message || "Failed to push README to GitHub.",
+          error:
+            updateData.message === "Not Found"
+              ? `Special repository '${username}/${username}' was not found. Please create repository '${username}/${username}' on GitHub first or grant repo write permissions.`
+              : updateData.message || "Failed to push README to GitHub.",
           details: updateData,
         },
         { status: updateRes.status }

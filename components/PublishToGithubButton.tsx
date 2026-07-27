@@ -128,13 +128,31 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
 
       {/* Success / Error Notification Modal / Banner */}
       {publishResult && (
-        <div className="absolute top-full right-0 mt-2 z-50 w-72 bg-[#0d1117] border border-[#30363d] rounded-lg p-3 shadow-2xl animate-fade-in text-xs font-mono">
+        <div className="absolute top-full right-0 mt-2 z-50 w-80 sm:w-96 bg-[#0d1117] border border-[#30363d] rounded-lg p-3.5 shadow-2xl animate-fade-in text-xs font-mono">
+          <div className="flex justify-between items-start mb-1">
+            <div className="flex items-center gap-1.5 font-bold">
+              {publishResult.success ? (
+                <div className="flex items-center gap-2 text-secondary">
+                  <Check size={16} />
+                  <span>Published to GitHub!</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-accent">
+                  <AlertCircle size={16} />
+                  <span>Sync Failed</span>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setPublishResult(null)}
+              className="text-[#8b949e] hover:text-white transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
           {publishResult.success ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-secondary font-bold">
-                <Check size={16} />
-                <span>Published to GitHub!</span>
-              </div>
+            <div className="space-y-2 pt-1">
               <p className="text-[#8b949e] text-[11px] leading-tight">
                 Your profile README.md is now live on your special GitHub repository!
               </p>
@@ -149,14 +167,16 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
               </a>
             </div>
           ) : (
-            <div className="space-y-1.5 text-accent">
-              <div className="flex items-center gap-1.5 font-bold">
-                <AlertCircle size={16} />
-                <span>Sync Failed</span>
-              </div>
-              <p className="text-[#8b949e] text-[11px] leading-tight">
+            <div className="space-y-2 pt-1">
+              <p className="text-[#8b949e] text-[11px] leading-relaxed whitespace-pre-line">
                 {publishResult.error}
               </p>
+              <button
+                onClick={() => signIn("github")}
+                className="text-xs text-primary hover:underline font-bold block pt-1"
+              >
+                Re-authenticate with GitHub ➔
+              </button>
             </div>
           )}
         </div>
