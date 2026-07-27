@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
+import { getToken } from "next-auth/jwt";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function POST(req: NextRequest) {
   try {
     const session: any = await getServerSession(authOptions);
+    let accessToken = session?.accessToken;
+    let username = session?.user?.username || session?.user?.name;
 
-    if (!session || !session.accessToken) {
+    // Fallback for Vercel Serverless Functions: extract JWT token directly from cookies
+    if (!accessToken) {
+      try {
+        const token: any = await getToken({
+          req: req as any,
+          secret: process.env.NEXTAUTH_SECRET || "devprofile-builder-secret-key-12345",
+        });
+        if (token) {
+          accessToken = token.accessToken;
+          username = username || token.username || token.name;
+        }
+      } catch (tokenErr) {
+        console.warn("getToken fallback error:", tokenErr);
+      }
+    }
+
+    if (!accessToken) {
       return NextResponse.json(
         { error: "Unauthorized. Please sign in with GitHub first." },
         { status: 401 }
@@ -22,11 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const accessToken = session.accessToken;
-
     // Step 1: Fetch exact authenticated user login handle directly from GitHub API
-    let username = session.user?.username;
-
     try {
       const userRes = await fetch("https://api.github.com/user", {
         headers: {
