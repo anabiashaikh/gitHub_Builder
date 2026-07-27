@@ -26,17 +26,17 @@ export function Header() {
   };
 
   return (
-    <header className="bg-surface font-sans text-sm border-b border-outline-variant flex justify-between items-center w-full px-6 h-16 sticky top-0 z-50 shrink-0 select-none">
+    <header className="bg-surface font-sans text-sm border-b border-outline-variant flex justify-between items-center w-full px-2.5 sm:px-6 h-14 sm:h-16 sticky top-0 z-50 shrink-0 select-none gap-1 sm:gap-4">
       {/* Left Title & Tabs */}
-      <div className="flex items-center gap-3 sm:gap-6 h-full">
-        <span className="font-sans font-bold text-sm sm:text-lg text-primary md:hidden block shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-6 h-full min-w-0">
+        <span className="font-sans font-bold text-xs sm:text-lg text-primary md:hidden block shrink-0">
           DevProfile
         </span>
 
-        <nav className="flex h-full items-end gap-1 overflow-x-auto">
+        <nav className="flex h-full items-end gap-0.5 sm:gap-1 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setProfileField("activeTab", "editor")}
-            className={`px-2.5 sm:px-4 h-full flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+            className={`px-2 sm:px-4 h-full flex items-center font-mono text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
               activeTab === "editor"
                 ? "text-primary border-primary font-semibold bg-surface-container-low/50"
                 : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-high"
@@ -46,7 +46,7 @@ export function Header() {
           </button>
           <button
             onClick={() => setProfileField("activeTab", "preview")}
-            className={`px-2.5 sm:px-4 h-full flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+            className={`px-2 sm:px-4 h-full flex items-center font-mono text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
               activeTab === "preview"
                 ? "text-primary border-primary font-semibold bg-surface-container-low/50"
                 : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-high"
@@ -56,7 +56,7 @@ export function Header() {
           </button>
           <button
             onClick={() => setProfileField("activeTab", "templates")}
-            className={`px-2.5 sm:px-4 h-full flex items-center font-mono text-[11px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
+            className={`px-2 sm:px-4 h-full flex items-center font-mono text-[10px] sm:text-xs uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${
               activeTab === "templates"
                 ? "text-primary border-primary font-semibold bg-surface-container-low/50"
                 : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-high"
@@ -68,7 +68,7 @@ export function Header() {
       </div>
 
       {/* Right Controls & Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {showNotification && (
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-secondary/15 border border-secondary text-secondary rounded text-xs font-mono animate-fade-in">
             <Check size={14} />
@@ -102,14 +102,15 @@ export function Header() {
         {/* Save Session Button */}
         <button
           onClick={handleSaveProfile}
-          className="bg-surface-container-high text-on-surface border border-outline-variant font-mono text-xs uppercase tracking-wider px-3.5 py-2 rounded-md hover:bg-surface-container-highest transition-all flex items-center gap-2"
+          className="bg-surface-container-high text-on-surface border border-outline-variant font-mono text-[10px] sm:text-xs uppercase tracking-wider px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-md hover:bg-surface-container-highest transition-all flex items-center gap-1 sm:gap-2 shrink-0"
         >
-          <Sparkles size={14} />
-          <span>Save Session</span>
+          <Sparkles size={14} className="shrink-0" />
+          <span className="hidden sm:inline">Save Session</span>
+          <span className="sm:hidden">Save</span>
         </button>
 
         {/* User Avatar */}
-        <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high cursor-pointer shrink-0 flex items-center justify-center">
+        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high cursor-pointer shrink-0 flex items-center justify-center">
           {state.avatarUrl ? (
             <img
               alt="User avatar"
@@ -117,7 +118,7 @@ export function Header() {
               src={state.avatarUrl}
             />
           ) : (
-            <User size={16} className="text-on-surface-variant" />
+            <User size={15} className="text-on-surface-variant" />
           )}
         </div>
       </div>

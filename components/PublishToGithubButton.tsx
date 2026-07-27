@@ -101,26 +101,27 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
       {status !== "authenticated" ? (
         <button
           onClick={() => signIn("github", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
-          className={`bg-[#24292e] text-white font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md hover:bg-[#2f363d] transition-all flex items-center gap-2 border border-[#444d56] shadow-md ${customClass}`}
+          className={`bg-[#24292e] text-white font-mono text-[10px] sm:text-xs uppercase tracking-wider px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#2f363d] transition-all flex items-center gap-1.5 border border-[#444d56] shadow-md shrink-0 whitespace-nowrap ${customClass}`}
         >
-          <GithubIcon size={16} />
+          <GithubIcon size={14} className="shrink-0" />
           <span>Sign In to Sync</span>
         </button>
       ) : (
         <button
           onClick={handlePublish}
           disabled={isPublishing}
-          className={`bg-accent text-white font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md hover:bg-accent/90 transition-all flex items-center gap-2 shadow-md shadow-accent/20 disabled:opacity-50 ${customClass}`}
+          className={`bg-accent text-white font-mono text-[10px] sm:text-xs uppercase tracking-wider px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-accent/90 transition-all flex items-center gap-1.5 shadow-md shadow-accent/20 disabled:opacity-50 shrink-0 whitespace-nowrap ${customClass}`}
         >
           {isPublishing ? (
             <>
-              <Loader2 size={16} className="animate-spin" />
-              <span>Syncing README...</span>
+              <Loader2 size={14} className="animate-spin shrink-0" />
+              <span>Syncing...</span>
             </>
           ) : (
             <>
-              <GithubIcon size={16} />
-              <span>Direct GitHub Sync</span>
+              <GithubIcon size={14} className="shrink-0" />
+              <span className="hidden sm:inline">Direct GitHub Sync</span>
+              <span className="sm:hidden">GitHub Sync</span>
             </>
           )}
         </button>
@@ -128,7 +129,7 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
 
       {/* Success / Error Notification Modal / Banner */}
       {publishResult && (
-        <div className="absolute top-full right-0 mt-2 z-50 w-80 sm:w-96 bg-[#0d1117] border border-[#30363d] rounded-lg p-3.5 shadow-2xl animate-fade-in text-xs font-mono">
+        <div className="fixed sm:absolute top-16 sm:top-full right-2 sm:right-0 mt-2 z-50 w-[90vw] max-w-sm sm:w-96 bg-[#0d1117] border border-[#30363d] rounded-lg p-3 sm:p-3.5 shadow-2xl animate-fade-in text-xs font-mono">
           <div className="flex justify-between items-start mb-1">
             <div className="flex items-center gap-1.5 font-bold">
               {publishResult.success ? (
@@ -145,7 +146,7 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
             </div>
             <button
               onClick={() => setPublishResult(null)}
-              className="text-[#8b949e] hover:text-white transition-colors"
+              className="text-[#8b949e] hover:text-white transition-colors p-1"
             >
               ✕
             </button>

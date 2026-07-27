@@ -56,7 +56,7 @@ export function AIAssistantBox() {
   return (
     <div
       id="ai-assistant-box"
-      className="border border-primary/40 bg-surface-container-low/90 rounded-lg p-5 relative overflow-hidden transition-all duration-300 shadow-xl shadow-primary/5 group"
+      className="border border-primary/40 bg-surface-container-low/90 rounded-lg p-3.5 sm:p-5 relative overflow-hidden transition-all duration-300 shadow-xl shadow-primary/5 group"
     >
       {/* Background Subtle Ambient Glow */}
       <div className="absolute top-0 right-0 p-4 text-primary opacity-10 pointer-events-none">
@@ -97,7 +97,7 @@ export function AIAssistantBox() {
           type="button"
           onClick={handleGenerateProfile}
           disabled={isGeneratingAI}
-          className="bg-accent text-white font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md flex items-center gap-2 hover:bg-accent/90 transition-all shadow-md shadow-accent/20 disabled:opacity-50"
+          className="bg-accent text-white font-mono text-[10px] sm:text-xs uppercase tracking-wider px-3 sm:px-4 py-1.5 sm:py-2 rounded-md flex items-center gap-2 hover:bg-accent/90 transition-all shadow-md shadow-accent/20 disabled:opacity-50"
         >
           {isGeneratingAI ? (
             <>
