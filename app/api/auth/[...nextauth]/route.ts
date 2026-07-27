@@ -1,12 +1,15 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 
+const clientId = (process.env.GITHUB_CLIENT_ID || "Ov23liIPXA7nnpt2zhsS").trim().replace(/['"]/g, "");
+const clientSecret = (process.env.GITHUB_CLIENT_SECRET || "74fb900add24565f360bbd6adc0c8de9d496cda7").trim().replace(/['"]/g, "");
+const nextAuthSecret = (process.env.NEXTAUTH_SECRET || "devprofile-builder-secret-key-12345").trim().replace(/['"]/g, "");
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
+      clientId: clientId,
+      clientSecret: clientSecret,
       authorization: {
         params: {
           scope: "read:user repo",
@@ -17,7 +20,11 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  secret: nextAuthSecret,
   callbacks: {
+    async signIn() {
+      return true;
+    },
     async jwt({ token, account, profile }: any) {
       if (account) {
         token.accessToken = account.access_token;
@@ -34,25 +41,8 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async redirect({ url, baseUrl }: any) {
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      if (url.includes("vercel.app") || url.includes("localhost")) return url;
-      return baseUrl;
-    },
   },
-  secret: process.env.NEXTAUTH_SECRET || "devprofile-builder-secret-key-12345",
   debug: true,
-  cookies: {
-    sessionToken: {
-      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
 };
 
 const handler = NextAuth(authOptions);
