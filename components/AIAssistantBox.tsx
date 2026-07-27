@@ -40,6 +40,7 @@ export function AIAssistantBox() {
           name: data.name,
           title: data.title,
           bio: data.bio,
+          expertise: data.expertise,
           techStack: data.techStack,
         });
       } else {

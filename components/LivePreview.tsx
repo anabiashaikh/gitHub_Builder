@@ -48,6 +48,7 @@ export function LivePreview() {
   const name = state.name || "Your Name";
   const title = state.title || "Your Title";
   const bio = state.bio || "Your developer biography will appear here as you type or generate with AI...";
+  const expertise = state.expertise || [];
   const location = state.location;
   const portfolioUrl = state.portfolioUrl;
   const githubUsername = state.githubUsername;
@@ -55,7 +56,7 @@ export function LivePreview() {
   const avatarUrl = state.avatarUrl;
   const templateId = state.templateId || "gradient-indigo";
 
-  // Dynamic template styling mapping
+  // Dynamic template styling mapping for all 8 themes
   const templateStyles: Record<string, { banner: string; badge: string; dot: string }> = {
     "gradient-indigo": {
       banner: "from-indigo-600 via-indigo-500 to-teal-400",
@@ -77,24 +78,72 @@ export function LivePreview() {
       badge: "bg-purple-500/10 border-purple-500/40 text-purple-300",
       dot: "bg-purple-400",
     },
+    "dracula-purple": {
+      banner: "from-purple-600 via-fuchsia-500 to-pink-500",
+      badge: "bg-fuchsia-500/10 border-fuchsia-500/40 text-fuchsia-400",
+      dot: "bg-fuchsia-400",
+    },
+    "nordic-frost": {
+      banner: "from-sky-500 via-cyan-400 to-indigo-500",
+      badge: "bg-cyan-500/10 border-cyan-500/40 text-cyan-400",
+      dot: "bg-cyan-400",
+    },
+    "sunset-crimson": {
+      banner: "from-rose-600 via-red-500 to-amber-500",
+      badge: "bg-rose-500/10 border-rose-500/40 text-rose-400",
+      dot: "bg-rose-400",
+    },
+    "tokyo-night": {
+      banner: "from-blue-600 via-indigo-600 to-purple-600",
+      badge: "bg-blue-500/10 border-blue-500/40 text-blue-400",
+      dot: "bg-blue-400",
+    },
   };
 
   const activeTheme = templateStyles[templateId] || templateStyles["gradient-indigo"];
 
-  // Generate GitHub Markdown README string based on store state
+  // Generate GitHub Markdown README string based on store state following the exact user layout format
   const markdownReadme = `# Hi there, I'm ${name} 👋
 ## ${title}
+
+<p align="center">
+  <code>${title}</code>
+</p>
+
+---
+
+### 🙋‍♀️ About Me
 
 ${bio}
 
 ---
 
-### 🌐 Connect & Details
-${location ? `- 📍 **Location:** ${location}\n` : ""}${portfolioUrl ? `- 🔗 **Portfolio:** [${portfolioUrl}](${portfolioUrl})\n` : ""}${githubUsername ? `- 🐙 **GitHub:** [@${githubUsername}](https://github.com/${githubUsername})\n` : ""}
+### 🚀 Expertise
+
+${
+  expertise.length > 0
+    ? expertise
+        .map((e) => {
+          const parts = e.split("—");
+          if (parts.length > 1) {
+            return `**${parts[0].trim()}** — ${parts.slice(1).join("—").trim()}`;
+          }
+          return `**${e}** — Specialized domain methodology and engineering practices.`;
+        })
+        .join("\n\n")
+    : "- **Full-Stack Architecture** — Architecting modern web applications.\n- **Data & AI Systems** — Integrating LLMs and data pipelines."
+}
+
 ---
 
 ### ⚡ Top Tech Stack
+
 ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : "`Developer`"}
+
+---
+
+### 🌐 Connect & Details
+${location ? `- 📍 **Location:** ${location}\n` : ""}${portfolioUrl ? `- 🔗 **Portfolio:** [${portfolioUrl}](${portfolioUrl})\n` : ""}${githubUsername ? `- 🐙 **GitHub:** [@${githubUsername}](https://github.com/${githubUsername})\n` : ""}
 
 ---
 *Generated with DevProfile Architect* 🚀
@@ -136,24 +185,40 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
           {/* Preview Format Switcher */}
           <div className="flex items-center bg-surface-container-high rounded-md p-0.5 border border-outline-variant text-xs font-mono">
             <button
-              onClick={() => setPreviewTab("card")}
-              className={`px-3 py-1 rounded transition-colors ${
+              onClick={() => {
+                if (previewTab === "card") {
+                  downloadMarkdown();
+                } else {
+                  setPreviewTab("card");
+                }
+              }}
+              className={`px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 ${
                 previewTab === "card"
                   ? "bg-primary text-white font-semibold"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
+              title="Click to view README or download .md file"
             >
-              GitHub Card
+              <span>README.md</span>
+              <Download size={13} className="shrink-0" />
             </button>
             <button
-              onClick={() => setPreviewTab("markdown")}
-              className={`px-3 py-1 rounded transition-colors ${
+              onClick={() => {
+                if (previewTab === "markdown") {
+                  copyMarkdown();
+                } else {
+                  setPreviewTab("markdown");
+                }
+              }}
+              className={`px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 ${
                 previewTab === "markdown"
                   ? "bg-primary text-white font-semibold"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
+              title="Click to view Code or copy Markdown"
             >
-              Markdown
+              <span>Code</span>
+              <Copy size={13} className="shrink-0" />
             </button>
           </div>
 
@@ -186,7 +251,7 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
       </div>
 
       {/* Preview Canvas Content */}
-      <div className="p-6 md:p-10 flex justify-center flex-grow items-start">
+      <div className="p-4 md:p-8 flex justify-center flex-grow items-start">
         {!hasData ? (
           <div className="w-full max-w-md bg-surface-container-low border border-dashed border-outline-variant rounded-xl p-8 text-center flex flex-col items-center justify-center my-auto shadow-sm">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary mb-4">
@@ -205,94 +270,158 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
         ) : previewTab === "card" ? (
           <div
             className={`w-full transition-all duration-300 ${
-              viewMode === "mobile" ? "max-w-md" : "max-w-3xl"
-            } bg-[#0d1117] border border-[#30363d] rounded-lg overflow-hidden shadow-2xl`}
+              viewMode === "mobile" ? "max-w-md" : "max-w-5xl"
+            } bg-[#0d1117] border border-[#30363d] rounded-xl overflow-hidden shadow-2xl p-4 sm:p-6 md:p-8 text-[#c9d1d9] font-sans flex flex-col md:flex-row gap-6 md:gap-8`}
           >
-            {/* Header Banner & Avatar Frame (Dynamic Template Color) */}
-            <div className="h-36 bg-[#161b22] border-b border-[#30363d] relative overflow-hidden flex items-end px-6 pb-4">
-              <div className={`absolute inset-0 opacity-80 bg-gradient-to-r ${activeTheme.banner} transition-all duration-300`}></div>
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
-
-              <div className="flex items-end gap-4 relative z-10 translate-y-10">
-                <div className="w-24 h-24 rounded-full border-4 border-[#0d1117] bg-[#161b22] overflow-hidden shrink-0 shadow-lg flex items-center justify-center">
+            {/* Left Sidebar Column (~25%-30% width) - Exact GitHub Profile Sidebar */}
+            <div className="w-full md:w-[30%] shrink-0 flex flex-col items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-[#21262d] pb-6 md:pb-0 md:pr-6">
+              
+              {/* Mobile Only Template Banner behind Avatar (< md screens) */}
+              <div className="md:hidden w-full h-32 sm:h-40 rounded-xl bg-[#161b22] border border-[#30363d] relative overflow-hidden flex items-end justify-center mb-10">
+                <div className={`absolute inset-0 opacity-90 bg-gradient-to-r ${activeTheme.banner}`}></div>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/25 via-transparent to-black/40"></div>
+                <div className="relative z-10 translate-y-8 w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-[#0d1117] bg-[#161b22] overflow-hidden shadow-2xl flex items-center justify-center">
                   {avatarUrl ? (
-                    <img
-                      alt="Preview Avatar"
-                      className="w-full h-full object-cover"
-                      src={avatarUrl}
-                    />
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
                     <User size={36} className="text-[#8b949e]" />
                   )}
                 </div>
               </div>
+
+              {/* Tablet & Desktop Avatar Frame (>= md screens - Exact 2-Column Desktop Layout) */}
+              <div className="hidden md:flex w-36 h-36 md:w-40 md:h-40 lg:w-44 lg:h-44 rounded-full border-4 border-[#30363d] bg-[#161b22] overflow-hidden mb-4 shadow-xl items-center justify-center">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={48} className="text-[#8b949e]" />
+                )}
+              </div>
+
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+                {name}
+              </h1>
+              <p className="text-sm text-[#8b949e] font-mono mb-1">
+                {githubUsername || "username"}
+              </p>
+
+              <p className="text-xs text-[#c9d1d9] font-sans mb-1 font-semibold">
+                {title}
+              </p>
+
+              {/* Tagline / Motto under Name - Clean White Text Without Box */}
+              <p className="text-xs text-white font-sans mb-4 leading-relaxed max-w-xs">
+                {state.tagline || "Turning data into decisions."}
+              </p>
+
+              <button className="w-full max-w-xs py-1.5 px-3 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white font-mono text-xs rounded-md transition-colors mb-4 text-center font-semibold">
+                Edit profile
+              </button>
+
+              <div className="text-xs font-mono text-[#8b949e] mb-4 flex items-center gap-1.5">
+                <span>👥 0 followers</span> · <span>0 following</span>
+              </div>
+
+              <div className="w-full space-y-2.5 text-xs font-mono text-[#8b949e] border-t border-[#21262d] pt-4">
+                {location && (
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <span>📍</span> <span>{location}</span>
+                  </div>
+                )}
+                {portfolioUrl && (
+                  <div className="flex items-center justify-center md:justify-start gap-2 truncate">
+                    <span>🔗</span>
+                    <a href={portfolioUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate">
+                      {portfolioUrl}
+                    </a>
+                  </div>
+                )}
+                {githubUsername && (
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <span>🐙</span> <span>@{githubUsername}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Profile Body Content */}
-            <div className="pt-14 px-6 pb-8">
-              <div className="mb-6 border-b border-[#21262d] pb-4">
-                <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-2xl font-semibold text-[#c9d1d9] leading-tight">
-                    {name}
-                  </h1>
-                  <div
-                    className={`w-3 h-3 ${activeTheme.dot} rounded-full pulse-status`}
-                    title="Available for work"
-                  ></div>
-                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded border ${activeTheme.badge}`}>
-                    Active
-                  </span>
-                </div>
-                <h2 className="text-sm text-[#8b949e] font-mono">
-                  {title}
-                </h2>
-              </div>
-
-              {/* Bio Paragraphs */}
-              <div className="mb-6 text-[#8b949e] font-sans text-sm leading-relaxed space-y-2 whitespace-pre-line">
-                <p>{bio}</p>
-
-                <div className="flex flex-wrap items-center gap-4 pt-3 text-xs font-mono">
-                  {portfolioUrl && (
-                    <a
-                      href={portfolioUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 text-primary hover:underline"
-                    >
-                      <Link2 size={14} /> {portfolioUrl}
-                    </a>
-                  )}
-                  {location && (
-                    <span className="flex items-center gap-1 text-[#8b949e]">
-                      <MapPin size={14} /> {location}
-                    </span>
-                  )}
-                  {githubUsername && (
-                    <span className="flex items-center gap-1 text-[#8b949e]">
-                      <GithubIcon size={14} /> @{githubUsername}
-                    </span>
-                  )}
+            {/* Right Main Content Column (~70% width) */}
+            <div className="w-full md:w-[70%] flex-grow space-y-6">
+              {/* Tablet & Desktop Sleek Header Banner Graphic (>= md screens) */}
+              <div className="hidden md:flex h-36 sm:h-44 w-full bg-[#161b22] border border-[#30363d] rounded-xl relative overflow-hidden flex items-center justify-center shadow-inner">
+                <div className={`absolute inset-0 opacity-90 bg-gradient-to-r ${activeTheme.banner}`}></div>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/25 via-transparent to-black/40"></div>
+                <div className="relative z-10 w-16 h-16 rounded-full border-4 border-white/20 bg-black/40 backdrop-blur-md flex items-center justify-center shadow-2xl">
+                  <GithubIcon size={32} className="text-white" />
                 </div>
               </div>
 
-              {/* Tech Stack Badges */}
-              <div>
-                <h3 className="text-sm font-semibold text-[#c9d1d9] mb-3 flex items-center gap-1.5 font-mono">
-                  <Terminal size={16} className="text-primary" /> Core Tech Stack
+              {/* Tagline Sub-header - Tablet & Desktop (>= md) */}
+              <div className="hidden md:block text-center">
+                <h3 className="font-mono text-xs sm:text-sm text-white inline-block">
+                  {state.tagline || "Turning data into decisions."}
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {techStack.map((tech) => (
-                    <span
-                      key={tech}
-                      className={`px-3 py-1 border rounded-full text-xs font-mono flex items-center gap-1.5 transition-all ${activeTheme.badge}`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${activeTheme.dot}`}></span>
-                      {tech}
-                    </span>
-                  ))}
+              </div>
+
+              <hr className="border-[#21262d]" />
+
+              {/* 🙋‍♀️ About Me Section */}
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-3 flex items-center gap-2">
+                  <span>🙋‍♀️</span> <span>About Me</span>
+                </h3>
+                <div className="text-xs sm:text-sm text-[#8b949e] leading-relaxed space-y-4 whitespace-pre-line">
+                  <p>{bio}</p>
                 </div>
               </div>
+
+              <hr className="border-[#21262d]" />
+
+              {/* 🚀 Expertise Section */}
+              {expertise && expertise.length > 0 && (
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-3 flex items-center gap-2">
+                    <span>🚀</span> <span>Expertise</span>
+                  </h3>
+                  <div className="space-y-3 text-xs sm:text-sm">
+                    {expertise.map((exp, idx) => {
+                      const parts = exp.split("—");
+                      return (
+                        <div key={idx} className="bg-[#161b22] border border-[#30363d] rounded-lg p-3.5">
+                          <strong className="text-white font-semibold block mb-1">
+                            {parts[0].trim()}
+                          </strong>
+                          {parts.length > 1 && (
+                            <span className="text-[#8b949e] text-xs leading-relaxed block whitespace-pre-line">
+                              — {parts.slice(1).join("—").trim()}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <hr className="border-[#21262d]" />
+
+              {/* ⚡ Top Tech Stack Section */}
+              {techStack && techStack.length > 0 && (
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-3 flex items-center gap-2">
+                    <span>⚡</span> <span>Top Tech Stack</span>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {techStack.map((tech) => (
+                      <span
+                        key={tech}
+                        className="bg-primary/10 border border-primary/30 text-primary font-mono text-xs px-3 py-1 rounded-md"
+                      >
+                        `{tech}`
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -303,30 +432,6 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
                 README.md Source Code
               </span>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={copyMarkdown}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest rounded text-xs font-mono transition-colors text-on-surface"
-                >
-                  {copied ? (
-                    <>
-                      <Check size={14} className="text-secondary" />
-                      <span>Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={14} />
-                      <span>Copy Code</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={downloadMarkdown}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded text-xs font-mono transition-colors border border-outline-variant"
-                >
-                  <Download size={14} />
-                  <span>Download .md</span>
-                </button>
                 <PublishToGithubButton />
               </div>
             </div>

@@ -4,8 +4,9 @@ import { GoogleGenAI } from "@google/genai";
 export async function POST(req: NextRequest) {
   let prompt = "";
   try {
-    const body = await req.json();
-    prompt = body.prompt || "";
+    const body = await req.json().catch(() => ({}));
+    const prompt = body.prompt || "";
+    const existingExpertise = Array.isArray(body.existingExpertise) ? body.existingExpertise : undefined;
 
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return NextResponse.json(
@@ -16,23 +17,29 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (apiKey && apiKey !== "your_gemini_api_key_here" && apiKey !== "your-gemini-api-key-here") {
+    if (apiKey && apiKey !== "your_gemini_api_key_here" && apiKey !== "your-gemini-api-key-here" && prompt) {
       try {
         const ai = new GoogleGenAI({ apiKey });
 
-        const systemInstruction = `You are a pure dynamic profile generator. Your job is to read the user's prompt and extract/generate profile details strictly based ONLY on what the user wrote. DO NOT HARDCODE OR SUBSTITUTE generic software titles or generic tech stacks.
+        const systemInstruction = `You are an elite, highly detailed developer profile generator. Your job is to read the user's prompt and generate an exhaustive, highly professional profile.
 
-RULES FOR DYNAMIC EXTRACTION:
-1. TITLE: Combine ALL exact roles/professions mentioned by the user (e.g. if prompt mentions "Full-Stack Software Engineer and Academic Researcher", return "Full-Stack Software Engineer & Academic Researcher"). Do not remove or omit any role mentioned.
-2. BIO: Synthesize a professional 3-sentence biography incorporating the user's EXACT current projects, research focus, data skills, and goals mentioned in their prompt.
-3. TECH STACK: Extract ALL technologies, programming languages, databases, tools, frameworks, and research/data methodologies explicitly listed in the prompt (e.g. ["JavaScript", "Node.js", "Next.js", "PostgreSQL", "Prisma ORM", "AI API Integration (Gemini)", "Statistical Analysis", "Survey Design", "Regression Modeling", "Data Visualization"]).
+RULES FOR DYNAMIC GENERATION:
+1. TITLE: Combine ALL exact roles/professions mentioned by the user.
+2. BIO / ABOUT ME: Generate a DETAILED, EXHAUSTIVE, PROFESSIONAL 2-PARAGRAPH biography (at least 12 to 16 lines of text in total).
+3. EXPERTISE: ${
+          existingExpertise && existingExpertise.length > 0
+            ? `For EACH of these user-provided expertise areas: ${JSON.stringify(existingExpertise)}, generate a detailed 3-4 line paragraph description in the format: "Tag Name — Detailed paragraph description".`
+            : 'Generate 3 to 4 detailed domain expertise items in the format "Tag Name — Detailed paragraph description".'
+        }
+4. TECH STACK: Extract ALL technologies, languages, databases, tools, and methodologies mentioned.
 
 Return strictly raw JSON format without markdown fences:
 {
   "name": "Extracted name if present in prompt, else null",
-  "title": "Exact dynamic professional title reflecting all user roles",
-  "bio": "Dynamic 3-sentence bio incorporating user's prompt text and goals",
-  "techStack": ["Array of ALL extracted skills, technologies, and methodologies from prompt"]
+  "title": "Exact dynamic professional title",
+  "bio": "Extensive 2-paragraph detailed biography (12-16 lines)",
+  "expertise": ["Array of detailed paragraph expertise items"],
+  "techStack": ["Array of extracted skills"]
 }`;
 
         const response = await ai.models.generateContent({
@@ -59,6 +66,9 @@ Return strictly raw JSON format without markdown fences:
             name: jsonResult.name || extractNameDynamic(prompt),
             title: jsonResult.title || extractTitleDynamic(prompt),
             bio: jsonResult.bio || generateBioDynamic(prompt),
+            expertise: Array.isArray(jsonResult.expertise) && jsonResult.expertise.length > 0
+              ? jsonResult.expertise
+              : extractExpertiseDynamic(prompt, existingExpertise),
             techStack: Array.isArray(jsonResult.techStack) && jsonResult.techStack.length > 0
               ? jsonResult.techStack
               : extractSkillsDynamic(prompt),
@@ -69,75 +79,49 @@ Return strictly raw JSON format without markdown fences:
       }
     }
 
-    // Pure Dynamic Parser (No hardcoded static templates)
-    return NextResponse.json(generateDynamicProfile(prompt));
-
+    return NextResponse.json(generateDynamicProfile(prompt, existingExpertise));
   } catch (error: any) {
     console.error("Critical error in /api/generate-profile:", error);
-    return NextResponse.json(generateDynamicProfile(prompt || "Full-Stack Software Engineer"));
+    return NextResponse.json(generateDynamicProfile("Full-Stack Software Engineer"));
   }
 }
 
-// 100% Dynamic Name Extractor
 function extractNameDynamic(prompt: string): string | undefined {
   const nameMatch = prompt.match(/(?:i am|my name is|im|name:?)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
-  return nameMatch && nameMatch[1] ? nameMatch[1] : undefined;
+  return nameMatch ? nameMatch[1] : undefined;
 }
 
-// 100% Dynamic Title Extractor - Captures all roles from prompt text
 function extractTitleDynamic(prompt: string): string {
   const roles: string[] = [];
+  const lower = prompt.toLowerCase();
 
-  // Match roles like "Full-Stack Software Engineer", "Academic Researcher", etc.
-  if (/full-?stack/i.test(prompt)) roles.push("Full-Stack Engineer");
-  else if (/software engineer|developer/i.test(prompt)) roles.push("Software Engineer");
-  
-  if (/academic researcher|researcher|research/i.test(prompt)) roles.push("Academic Researcher");
-  if (/data scientist|data analyst/i.test(prompt)) roles.push("Data Scientist");
-  if (/ai engineer|ai developer/i.test(prompt)) roles.push("AI Engineer");
+  if (lower.includes("full-stack") || lower.includes("full stack")) roles.push("Full-Stack Software Engineer");
+  else if (lower.includes("frontend")) roles.push("Frontend Engineer");
+  else if (lower.includes("backend")) roles.push("Backend Engineer");
+  else if (lower.includes("software engineer") || lower.includes("developer")) roles.push("Software Engineer");
 
-  if (roles.length > 0) {
-    return roles.join(" & ");
+  if (lower.includes("researcher") || lower.includes("academic") || lower.includes("statistical")) {
+    roles.push("Academic Researcher");
   }
 
-  // Fallback: extract sentence starting with "I am a ..."
-  const roleMatch = prompt.match(/i am a\s+([^.\n,]+)/i);
-  if (roleMatch && roleMatch[1]) {
-    return roleMatch[1].trim().replace(/\b\w/g, (c) => c.toUpperCase());
+  if (lower.includes("ai") || lower.includes("data scientist") || lower.includes("machine learning")) {
+    if (!roles.some((r) => r.includes("AI"))) roles.push("AI Integrator");
   }
 
-  return "Full-Stack Engineer & Researcher";
+  return roles.length > 0 ? roles.join(" & ") : "Full-Stack Software Engineer & Academic Researcher";
 }
 
-// 100% Dynamic Bio Generator - Uses user's exact sentences & phrases
 function generateBioDynamic(prompt: string): string {
-  const title = extractTitleDynamic(prompt);
-  
-  // Extract projects or goals if present
-  let currentProjects = "";
-  const projMatch = prompt.match(/current projects?:?\s*([^.\n]+)/i) || prompt.match(/building\s+([^.\n]+)/i);
-  if (projMatch && projMatch[1]) {
-    currentProjects = `Currently focused on ${projMatch[1].trim()}.`;
-  }
+  const paragraph1 = `I build machine learning and software systems that survive contact with production traffic. Most of my work sits between research and infrastructure: fine-tuning transformers with LoRA and QLoRA, training gradient-boosted models on messy tabular data, and then doing the unglamorous part — quantizing checkpoints, batching requests, wiring feature pipelines, and making sure the thing that scored well in a notebook still scores well at 2 a.m. under load. Lately most of my time goes to LLM applications: retrieval pipelines, evaluation harnesses, distillation, and inference cost work, because that is where the gap between a demo and a dependable product is currently widest.`;
 
-  let goals = "";
-  const goalMatch = prompt.match(/goals?:?\s*([^.\n]+)/i) || prompt.match(/looking to\s+([^.\n]+)/i);
-  if (goalMatch && goalMatch[1]) {
-    goals = `Actively looking to ${goalMatch[1].trim()}.`;
-  }
+  const paragraph2 = `I care more about measurement than about model choice. Before I train anything I want a held-out evaluation set that reflects real user inputs and a baseline dumb enough to be embarrassing — half the time the baseline wins, and that saves months. I treat data quality, labeling guidelines, and error analysis as first-class engineering work rather than preprocessing, and I would rather ship a smaller model I can monitor, roll back, and explain than a larger one nobody can debug. Reproducibility is non-negotiable: pinned seeds, versioned datasets, tracked experiments, and a training run anyone on the team can reproduce from a single command.`;
 
-  const sentence1 = `${title} integrating advanced engineering practices with data-driven methodologies.`;
-  const sentence2 = currentProjects || "Dedicated to building scalable software, zero-latency applications, and robust analytical tools.";
-  const sentence3 = goals || "Passionate about open-source collaboration and innovative technology solutions.";
-
-  return `${sentence1} ${sentence2} ${sentence3}`;
+  return `${paragraph1}\n\n${paragraph2}`;
 }
 
-// 100% Dynamic Skill & Tech Extractor from Prompt Text
 function extractSkillsDynamic(prompt: string): string[] {
   const skills: string[] = [];
 
-  // 1. Extract explicit tech & skills lists (e.g. "Tech Skills: JavaScript, Node.js...", "Research & Data Skills: ...")
   const listMatches = prompt.match(/(?:skills|tech|stack|tools|methods|using):?\s*([^.\n]+)/gi);
   if (listMatches) {
     for (const match of listMatches) {
@@ -151,7 +135,6 @@ function extractSkillsDynamic(prompt: string): string[] {
     }
   }
 
-  // 2. Scan for specific keywords if not captured yet
   const keywords = [
     "JavaScript", "TypeScript", "Node.js", "Next.js", "React", "PostgreSQL", "Prisma ORM",
     "AI API Integration (Gemini)", "Statistical Analysis", "Survey Design", "Regression Modeling",
@@ -168,11 +151,27 @@ function extractSkillsDynamic(prompt: string): string[] {
   return skills.length > 0 ? skills : ["JavaScript", "Node.js", "Next.js", "PostgreSQL", "Prisma ORM", "Statistical Analysis"];
 }
 
-function generateDynamicProfile(prompt: string) {
+function extractExpertiseDynamic(prompt: string, existingExpertise?: string[]): string[] {
+  if (existingExpertise && existingExpertise.length > 0) {
+    return existingExpertise.map((item) => {
+      const tag = item.includes("—") ? item.split("—")[0].trim() : item;
+      return `${tag} — Comprehensive engineering expertise focused on architecting, testing, and shipping robust ${tag.toLowerCase()} systems in production environments with high reliability, automated benchmarks, and zero downtime.`;
+    });
+  }
+
+  return [
+    "Model Development & Fine-Tuning — I train and adapt deep learning and gradient-boosted models on complex tabular and unstructured data. Most of my work sits between research and infrastructure: fine-tuning transformers with LoRA and QLoRA, quantizing checkpoints, batching requests, wiring feature pipelines, and making sure models score reliably under 2 a.m. production load.",
+    "LLM & Retrieval Applications — Building end-to-end retrieval pipelines, evaluation harnesses, model distillation, and inference cost optimization. I treat data quality, labeling guidelines, and error analysis as first-class engineering work to bridge the gap between a demo and a dependable production product.",
+    "Full-Stack & Cloud Architecture — Architecting zero-latency microservices, responsive web applications, and resilient database schemas designed for high throughput, automated testing, and reproducible single-command deployment pipelines."
+  ];
+}
+
+function generateDynamicProfile(prompt: string, existingExpertise?: string[]) {
   return {
     name: extractNameDynamic(prompt),
     title: extractTitleDynamic(prompt),
     bio: generateBioDynamic(prompt),
+    expertise: extractExpertiseDynamic(prompt, existingExpertise),
     techStack: extractSkillsDynamic(prompt),
   };
 }

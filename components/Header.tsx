@@ -99,16 +99,6 @@ export function Header() {
         {/* Publish to GitHub Direct Sync Button */}
         <PublishToGithubButton />
 
-        {/* Save Session Button */}
-        <button
-          onClick={handleSaveProfile}
-          className="bg-surface-container-high text-on-surface border border-outline-variant font-mono text-[10px] sm:text-xs uppercase tracking-wider px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-md hover:bg-surface-container-highest transition-all flex items-center gap-1 sm:gap-2 shrink-0"
-        >
-          <Sparkles size={14} className="shrink-0" />
-          <span className="hidden sm:inline">Save Session</span>
-          <span className="sm:hidden">Save</span>
-        </button>
-
         {/* User Avatar */}
         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high cursor-pointer shrink-0 flex items-center justify-center">
           {state.avatarUrl ? (

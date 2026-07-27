@@ -5,7 +5,9 @@ export interface ProfileState {
   // Identity Fields
   name: string;
   title: string;
+  tagline: string;
   bio: string;
+  expertise: string[];
   location: string;
   portfolioUrl: string;
   githubUsername: string;
@@ -23,7 +25,9 @@ export interface ProfileState {
     timestamp: string;
     name: string;
     title: string;
+    tagline?: string;
     bio: string;
+    expertise?: string[];
     location: string;
     portfolioUrl: string;
     githubUsername: string;
@@ -37,7 +41,10 @@ export interface ProfileState {
   addTechSkill: (skill: string) => void;
   removeTechSkill: (skill: string) => void;
   setTechStack: (skills: string[]) => void;
-  setAIProfile: (data: { name?: string; title?: string; bio?: string; techStack?: string[] }) => void;
+  addExpertise: (item: string) => void;
+  removeExpertise: (item: string) => void;
+  setExpertise: (items: string[]) => void;
+  setAIProfile: (data: { name?: string; title?: string; tagline?: string; bio?: string; expertise?: string[]; techStack?: string[] }) => void;
   saveProfileToSession: () => void;
   clearSessionProfiles: () => void;
   resetProfile: () => void;
@@ -46,7 +53,9 @@ export interface ProfileState {
 const defaultState = {
   name: "",
   title: "",
+  tagline: "Turning data into decisions.",
   bio: "",
+  expertise: [],
   location: "",
   portfolioUrl: "",
   githubUsername: "",
@@ -83,12 +92,29 @@ export const useProfileStore = create<ProfileState>()(
 
       setTechStack: (skills) => set({ techStack: skills }),
 
+      addExpertise: (item) =>
+        set((state) => {
+          const trimmed = item.trim();
+          if (!trimmed || state.expertise.includes(trimmed)) return state;
+          return { ...state, expertise: [...state.expertise, trimmed] };
+        }),
+
+      removeExpertise: (item) =>
+        set((state) => ({
+          ...state,
+          expertise: state.expertise.filter((e) => e !== item),
+        })),
+
+      setExpertise: (items) => set({ expertise: items }),
+
       setAIProfile: (data) =>
         set((state) => ({
           ...state,
           name: data.name || state.name,
           title: data.title || state.title,
+          tagline: data.tagline || state.tagline,
           bio: data.bio || state.bio,
+          expertise: data.expertise && data.expertise.length > 0 ? data.expertise : state.expertise,
           techStack: data.techStack && data.techStack.length > 0 ? data.techStack : state.techStack,
         })),
 
@@ -100,6 +126,7 @@ export const useProfileStore = create<ProfileState>()(
           name: state.name,
           title: state.title,
           bio: state.bio,
+          expertise: [...state.expertise],
           location: state.location,
           portfolioUrl: state.portfolioUrl,
           githubUsername: state.githubUsername,
