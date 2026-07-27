@@ -33,6 +33,11 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }: any) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.includes("vercel.app") || url.includes("localhost")) return url;
+      return baseUrl;
+    },
   },
   secret: process.env.NEXTAUTH_SECRET || "devprofile-builder-secret-key-12345",
 };
