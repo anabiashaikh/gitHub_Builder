@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SessionProviderWrapper } from "@/components/SessionProviderWrapper";
 
 export const metadata: Metadata = {
   title: "DevProfile Architect - GitHub Profile Readme Builder",
   description:
-    "Build high-fidelity developer profiles with real-time live preview, Gemini 3.1 Pro AI scaffolding, Node.js Sharp image compositor, and Prisma database persistence.",
+    "Build high-fidelity developer profiles with real-time live preview, AI scaffolding, Node.js Sharp image compositor, and Prisma database persistence.",
 };
 
 export default function RootLayout({
@@ -23,7 +24,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background text-on-surface font-sans min-h-screen antialiased">
-        {children}
+        <SessionProviderWrapper>{children}</SessionProviderWrapper>
       </body>
     </html>
   );

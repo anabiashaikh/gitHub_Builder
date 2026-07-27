@@ -5,6 +5,8 @@ import { useProfileStore } from "@/store/useProfileStore";
 import { Bell, Settings, Check, Sparkles, User } from "lucide-react";
 import confetti from "canvas-confetti";
 
+import { PublishToGithubButton } from "./PublishToGithubButton";
+
 export function Header() {
   const state = useProfileStore();
   const { activeTab, setProfileField, saveProfileToSession } = state;
@@ -94,10 +96,13 @@ export function Header() {
           </button>
         </div>
 
-        {/* Publish / Save Button */}
+        {/* Publish to GitHub Direct Sync Button */}
+        <PublishToGithubButton />
+
+        {/* Save Session Button */}
         <button
           onClick={handleSaveProfile}
-          className="bg-accent text-white font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md hover:bg-accent/90 transition-all flex items-center gap-2 shadow-md shadow-accent/20"
+          className="bg-surface-container-high text-on-surface border border-outline-variant font-mono text-xs uppercase tracking-wider px-3.5 py-2 rounded-md hover:bg-surface-container-highest transition-all flex items-center gap-2"
         >
           <Sparkles size={14} />
           <span>Save Session</span>

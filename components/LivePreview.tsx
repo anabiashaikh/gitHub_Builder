@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useProfileStore } from "@/store/useProfileStore";
 import { GithubIcon } from "./GithubIcon";
+import { PublishToGithubButton } from "./PublishToGithubButton";
 import {
   Eye,
   Smartphone,
@@ -318,13 +319,15 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
                     </>
                   )}
                 </button>
+
                 <button
                   onClick={downloadMarkdown}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-container text-white rounded text-xs font-mono transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded text-xs font-mono transition-colors border border-outline-variant"
                 >
                   <Download size={14} />
                   <span>Download .md</span>
                 </button>
+                <PublishToGithubButton />
               </div>
             </div>
             <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-on-surface-variant overflow-x-auto p-4 bg-[#161b22] rounded border border-[#30363d]">
