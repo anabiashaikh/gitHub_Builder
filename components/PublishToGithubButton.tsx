@@ -56,7 +56,7 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
 
   const handlePublish = async () => {
     if (status !== "authenticated" || !session) {
-      signIn("github");
+      signIn("github", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" });
       return;
     }
 
@@ -100,7 +100,7 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
     <div className="flex flex-col gap-2 relative inline-block">
       {status !== "authenticated" ? (
         <button
-          onClick={() => signIn("github")}
+          onClick={() => signIn("github", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
           className={`bg-[#24292e] text-white font-mono text-xs uppercase tracking-wider px-4 py-2 rounded-md hover:bg-[#2f363d] transition-all flex items-center gap-2 border border-[#444d56] shadow-md ${customClass}`}
         >
           <GithubIcon size={16} />
@@ -172,7 +172,7 @@ ${techStack.length > 0 ? techStack.map((tech) => `\`${tech}\``).join(" • ") : 
                 {publishResult.error}
               </p>
               <button
-                onClick={() => signIn("github")}
+                onClick={() => signIn("github", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
                 className="text-xs text-primary hover:underline font-bold block pt-1"
               >
                 Re-authenticate with GitHub ➔
